@@ -30,7 +30,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ghcr.io/${{ github.repository }}/cloud_native_monitoring:latest
+        tags: ghcr.io/evelynjoh/final-project-measurements/cloud_native_monitoring:latest
 
   deploy:
     needs: build
