@@ -32,10 +32,46 @@ jobs:
         push: true
         tags: ghcr.io/evelynjoh/final-project-measurements/cloud_native_monitoring:latest
 
-  deploy:
+  deploy-infrastructure:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: Deploying the application
-      run: echo "Deploying the application"
-      # Hier meine Deployment-Schritte einfügen, z.B. SSH auf einen Server und dort Deployment-Befehle ausführen.
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./terraform
+
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ./terraform
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      working-directory: ./terraform
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  deploy-application:
+    needs: deploy-infrastructure
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: 'eu-central-1' # meine AWS-Region
+
+    - name: Deploy with Ansible
+      run: ansible-playbook -i inventory/hosts.yml playbook/deploy.yml
+      # sicher stellen, dass mein Ansible Playbook und das Inventory korrekt konfiguriert sind
+
