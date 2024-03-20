@@ -1,0 +1,33 @@
+- name: Deploy Docker Container
+  hosts: all
+  become: yes # Erhöht die Berechtigungen
+
+  tasks:
+    - name: Installiere Docker
+      command: wget -qO- https://get.docker.com/ | sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Logge in Docker Registry ein
+      docker_login:
+        username: dein_username
+        password: dein_passwort
+        registry: https://ghcr.io
+
+    - name: Stoppe den alten Container
+      docker_container:
+        name: amazing_elion
+        state: stopped
+
+    - name: Entferne den alten Container
+      docker_container:
+        name: amazing_elion
+        state: absent
+
+    - name: Starte neuen Docker Container
+      docker_container:
+        name: amazing_elion
+        image: "ghcr.io/evelynjoh/final-project-measurements/cloud_native_monitoring:latest"
+        state: started
+        published_ports:
+          - "5000:5000"
