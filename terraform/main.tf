@@ -1,7 +1,7 @@
 resource "aws_security_group" "my_cloud_app_sg" {
   name        = "my_cloud_app"
   description = "Security group for my cloud app"
-  vpc_id      = "vpc-0a7754656e76e389f0" # VPC-ID aus deinem Bild
+  vpc_id      = "vpc-01644ae1d3efb561b"
 
   ingress {
     description = "HTTPS"
@@ -43,20 +43,10 @@ resource "aws_security_group" "my_cloud_app_sg" {
 resource "aws_instance" "web_server" {
   ami                   = "ami-064573ac645743ea8"
   instance_type         = "t2.micro"
+  subnet_id             = "subnet-0f328fcb6e1aac22b" // Private Subnetz-ID
   vpc_security_group_ids = [aws_security_group.my_cloud_app_sg.id]
   
-  # Hier definierst du das Subnetz, falls erforderlich. Dieses müsste zuerst definiert werden.
-  # subnet_id = aws_subnet.mein_subnetz.id
-
   tags = {
     Name = "ExampleInstance"
   }
 }
-
-# Für den Fall dass ich ein Subnetz brauche. Eig aber nicht: 
-
-# resource "aws_subnet" "mein_subnetz" {
-#   vpc_id     = "vpc-0a7754656e76e389f0" # Meine VPC-ID
-#   cidr_block = "172.31.0.0/20" # Ein Subnetz meiner VPC-CIDR
-#   // Weitere Konfigurationen ...
-# }
