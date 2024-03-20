@@ -13,21 +13,14 @@ jobs:
         image: docker:19.03.12-dind
         options: --privileged
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-
-    - name: Login to Docker Registry
-      uses: docker/login-action@v1
+    - uses: actions/checkout@v2
+    - uses: docker/setup-buildx-action@v1
+    - uses: docker/login-action@v1
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.FINAL_PROJECT }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
+    - uses: docker/build-push-action@v2
       with:
         push: true
         tags: ghcr.io/evelynjoh/final-project-measurements/cloud_native_monitoring:latest
@@ -35,43 +28,36 @@ jobs:
   deploy-infrastructure:
     needs: build
     runs-on: ubuntu-latest
+    env: # AWS credentials as environment variables
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: 'eu-central-1' # my AWS region
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v1
-
+    - uses: actions/checkout@v2
+    - uses: hashicorp/setup-terraform@v1
     - name: Terraform Init
       run: terraform init
       working-directory: ./terraform
-
     - name: Terraform Plan
       run: terraform plan
       working-directory: ./terraform
-
     - name: Terraform Apply
       run: terraform apply -auto-approve
       working-directory: ./terraform
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy-application:
     needs: deploy-infrastructure
     runs-on: ubuntu-latest
+    env: # AWS credentials as environment variables
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: 'eu-central-1' # my AWS region
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+    - uses: actions/checkout@v2
+    - uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: 'eu-central-1' # meine AWS-Region
-
-    - name: Deploy with Ansible
-      run: ansible-playbook -i inventory/hosts.yml playbook/deploy.yml
-      # sicher stellen, dass mein Ansible Playbook und das Inventory korrekt konfiguriert sind
-
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
+    - run: ansible-playbook -i inventory/hosts.yml playbook/deploy.yml
+      # Ansible Playbook und Inventory müssen noch richtig konfiguriert werden
