@@ -1,5 +1,5 @@
 # Ignoriere Terraform Provider-Binärdateien
-**/.terraform/*
+.terraform/*
 
 # Ignoriere spezifische Binärdateien im Verzeichnisbaum
 **/terraform-provider-*
