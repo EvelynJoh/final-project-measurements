@@ -1,5 +1,5 @@
 resource "aws_security_group" "my_cloud_app_sg" {
-  name        = "my_cloud_app"
+  name        = "my_cloud_app2"
   description = "Security group for my cloud app"
   vpc_id      = "vpc-01644ae1d3efb561b"
 
